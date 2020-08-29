@@ -1,3 +1,4 @@
+require "time"
 require "rss"
 require "redis"
 require "yaml"
@@ -12,7 +13,8 @@ loop do
       feed = RSS::Parser.parse(rss)
       feed.items.each do |item|
         article = "#{item.title}\n#{item.link}"
-        if redis.get(url) < item.date
+        redis.set(url, "2002-06-12 12:00:00 +0300") if redis.get(url).nil?
+        if Time.parse(redis.get(url)) < item.date
           puts article
           redis.set(url, item.date)
         end
