@@ -1,0 +1,2 @@
+redis_url: "127.0.0.1"
+sleep_timer: "60" # in seconds
