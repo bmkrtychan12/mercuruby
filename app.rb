@@ -1,4 +1,4 @@
-require "time"
+require "uri"
 require "rss"
 require "redis"
 require "yaml"
@@ -10,17 +10,18 @@ rss_urls = File.read("urls")
 loop do
   rss_urls.split("\n").each do |url|
     open(url) do |rss|
-      feed = RSS::Parser.parse(rss)
-      feed.items.each do |item|
-        article = "#{item.title}\n#{item.link}"
-        redis.set(url, "2002-06-12 12:00:00 +0300") if redis.get(url).nil?
-        if Time.parse(redis.get(url)) < item.date
-          puts article
-          redis.set(url, item.date)
-        end
+      feed = RSS::Parser.parse(rss, false)
+      pure_url = URI.extract(feed.items[0].link.to_s).first
+      article = "#{feed.items[0].title}\n#{pure_url}"
+      # puts redis.get(url)
+      redis.set(url, "nil") if redis.get(url).nil?
+      # puts pure_url
+      if redis.get(url) != pure_url
+        puts article
+        redis.set(url, pure_url)
       end
     end
   end
 
-  sleep data["sleep_timer"]
+  sleep data["sleep_timer"].to_time
 end
